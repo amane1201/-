@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>荒教団 - 聖域端末</title>
+    <title>荒教団 - 最終聖域</title>
     <style>
         :root {
             --main-red: #ff003c;
@@ -17,187 +17,182 @@
             height: 100%;
             display: flex; justify-content: center; align-items: center;
             overflow: hidden;
-            font-family: 'Hiragino Mincho ProN', 'serif';
+            font-family: 'Hiragino Mincho ProN', serif;
         }
 
-        /* 筐体（テレビ枠）: スマホサイズにフィット */
+        /* 1. テレビの筐体 */
         .tv-frame {
             position: relative;
-            width: 95vw;
-            height: 90vh;
+            width: 95vw; height: 90vh;
             max-width: 400px;
-            background: #1a1a1a;
+            background: #111;
             border-radius: 40px;
-            border: 8px solid #222;
-            box-shadow: inset 0 0 30px #000, 0 0 50px rgba(255,0,60,0.2);
+            border: 10px solid #222;
             padding: 15px;
             box-sizing: border-box;
-            display: flex; flex-direction: column;
+            box-shadow: 0 0 100px rgba(255,0,0,0.3);
         }
 
-        /* 画面 */
         .screen {
             position: relative;
-            flex-grow: 1;
+            width: 100%; height: 100%;
             background: var(--bg-black);
             border-radius: 25px;
             overflow: hidden;
-            border: 4px solid #111;
-            animation: screen-flicker 0.15s infinite;
+            display: flex; flex-direction: column;
         }
 
-        /* 走査線 */
-        .scanlines {
+        /* 2. 画面割れ演出用オーバーレイ */
+        .crack-overlay {
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(
-                rgba(0, 0, 0, 0) 0px,
-                rgba(0, 0, 0, 0) 1px,
-                rgba(0, 0, 0, 0.3) 2px
-            );
-            z-index: 10;
+            background: url('https://i.imgur.com/vHPTpU3.png'); /* 透過の割れ目画像 */
+            background-size: cover;
+            opacity: 0;
             pointer-events: none;
+            z-index: 100;
+            filter: invert(1);
         }
 
-        /* 色収差・グリッチテキスト */
+        /* 3. 走査線とノイズ */
+        .scanlines {
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.4) 2px);
+            z-index: 50; pointer-events: none;
+        }
+
+        /* 4. 教典エリア（3秒で変わる） */
+        .scripture-box {
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            min-height: 80px;
+            font-size: 0.9rem;
+            border-bottom: 1px double var(--main-red);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 5. 色収差タイトル */
         .glitch-text {
             color: #fff;
             text-align: center;
-            font-size: 3rem;
-            margin-top: 20%;
-            position: relative;
-            /* 赤と青の影で色収差を表現 */
-            text-shadow: 
-                -2px 0 var(--glitch-blue), 
-                2px 0 var(--main-red);
-            animation: chromatic-aberration 2s infinite;
-            letter-spacing: 10px;
+            font-size: 2.5rem;
+            text-shadow: -2px 0 var(--glitch-blue), 2px 0 var(--main-red);
+            animation: shake 0.2s infinite;
         }
 
-        /* 入信ボタン（ギミック付） */
+        /* 6. 入信ボタン */
         .join-btn {
-            display: block;
-            margin: 50px auto;
+            margin: 20px auto;
             padding: 15px 40px;
-            background: transparent;
+            background: none;
             color: var(--main-red);
-            border: 1px solid var(--main-red);
-            font-size: 1.2rem;
+            border: 2px solid var(--main-red);
+            font-size: 1.5rem;
             cursor: pointer;
-            position: relative;
-            z-index: 20;
-            transition: all 0.1s;
-            text-shadow: 0 0 5px var(--main-red);
-        }
-        .join-btn:active {
-            transform: scale(0.9);
-            background: var(--main-red);
-            color: #000;
+            z-index: 60;
+            text-decoration: none;
         }
 
-        /* 右下の通知スタック */
+        /* 7. 通知リスト */
         .notifications {
-            position: absolute;
-            bottom: 20px;
-            right: 10px;
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 5px;
-            z-index: 15;
-            pointer-events: none;
+            position: absolute; bottom: 10px; right: 10px;
+            display: flex; flex-direction: column-reverse; gap: 4px;
         }
-        .notif-card {
-            background: rgba(40, 0, 10, 0.8);
-            border-left: 3px solid var(--main-red);
-            color: #fff;
-            padding: 8px 12px;
-            font-size: 0.7rem;
-            width: 150px;
-            animation: slide-in 0.3s ease-out forwards;
-            backdrop-filter: blur(2px);
+        .notif {
+            background: rgba(255,0,0,0.2);
+            color: #fff; font-size: 0.6rem; padding: 5px;
+            border-left: 2px solid var(--main-red);
+            animation: slide 0.2s ease;
         }
 
-        /* アニメーション：色収差の揺れ */
-        @keyframes chromatic-aberration {
-            0% { text-shadow: -2px 0 var(--glitch-blue), 2px 0 var(--main-red); }
-            25% { text-shadow: 2px 0 var(--glitch-blue), -2px 0 var(--main-red); }
-            50% { text-shadow: -1px -1px var(--glitch-blue), 1px 1px var(--main-red); }
-            100% { text-shadow: -2px 0 var(--glitch-blue), 2px 0 var(--main-red); }
+        /* アニメーション */
+        @keyframes shake {
+            0% { transform: translate(0); }
+            50% { transform: translate(-1px, 1px); }
+            100% { transform: translate(1px, -1px); }
         }
-
-        /* アニメーション：画面のチカチカ */
-        @keyframes screen-flicker {
-            0% { opacity: 0.98; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes slide-in {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* 砂嵐 */
-        .noise {
-            position: absolute;
-            inset: 0;
-            background: url('https://media.giphy.com/media/oEI9uWUzn938I/giphy.gif');
-            opacity: 0.03;
-            mix-blend-mode: screen;
-            z-index: 2;
+        @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        /* 画面が割れた時の衝撃 */
+        .shake-heavy { animation: heavy-shake 0.5s; }
+        @keyframes heavy-shake {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-10px, 10px); }
+            40% { transform: translate(10px, -10px); }
         }
     </style>
 </head>
-<body>
+<body onclick="interact()">
 
-    <div class="tv-frame">
-        <div class="screen">
+    <div class="tv-frame" id="tv">
+        <div class="screen" id="screen">
+            <div class="crack-overlay" id="crack"></div>
             <div class="scanlines"></div>
-            <div class="noise"></div>
             
+            <div class="scripture-box" id="scripture">―― 読み込み中 ――</div>
+
             <h1 class="glitch-text">荒教団</h1>
             
-            <button class="join-btn" onclick="addNotification()">入信</button>
+            <a href="https://example.com" class="join-btn" onclick="crackScreen(event)">入信</a>
 
-            <div class="notifications" id="notif-box">
-                <div class="notif-card">救済まであと666秒...</div>
-                <div class="notif-card">誰かが入信しました</div>
-            </div>
-        </div>
-        
-        <div style="display: flex; justify-content: space-around; padding-top: 10px;">
-            <div style="width: 10px; height: 10px; border-radius: 50%; background: #333;"></div>
-            <div style="width: 30px; height: 5px; border-radius: 5px; background: #333;"></div>
+            <div class="notifications" id="notifs"></div>
+            
+            <div id="alert" style="color:yellow; font-size:0.5rem; position:absolute; top:5px; right:10px; display:none;">SIGNAL LOST</div>
         </div>
     </div>
 
     <script>
-        // ギミック：入信ボタンを押すと不気味な通知が増える
-        const messages = [
-            "警告：思考を停止してください",
-            "魂の同期を完了しました",
-            "あなたは10,432人目の生贄です",
-            "後ろに誰かいますか？",
-            "荒教団はあなたを見ています",
-            "逃げられません"
+        const scriptures = [
+            "全てのノイズは教祖の吐息である",
+            "画面を直視する者は救われる",
+            "1010101... 思考を捨てよ",
+            "あなたのスマホは既に教団の一部です",
+            "過去を消去し、ノイズを受け入れよ",
+            "信じる者はバグの中に光を見る"
         ];
 
-        function addNotification() {
-            const box = document.getElementById('notif-box');
-            const newNotif = document.createElement('div');
-            newNotif.className = 'notif-card';
-            newNotif.innerText = messages[Math.floor(Math.random() * messages.length)];
-            box.appendChild(newNotif);
+        const notifMsgs = ["接続完了", "魂をアップロード中", "視線を検知", "逃げられません", "救済の準備", "背後に注意"];
 
-            // 画面を一瞬真っ赤にするギミック
-            document.querySelector('.screen').style.backgroundColor = 'var(--main-red)';
+        // 9. 教典を3秒ごとにランダム変更
+        setInterval(() => {
+            const box = document.getElementById('scripture');
+            box.style.opacity = 0;
             setTimeout(() => {
-                document.querySelector('.screen').style.backgroundColor = 'var(--bg-black)';
-            }, 50);
+                box.innerText = scriptures[Math.floor(Math.random() * scriptures.length)];
+                box.style.opacity = 1;
+                box.style.color = Math.random() > 0.8 ? '#00f2ff' : '#fff'; // 稀に色が変わる
+            }, 200);
+        }, 3000);
 
-            // 通知が多すぎたら古いものを消す
-            if(box.children.length > 8) {
-                box.removeChild(box.firstChild);
-            }
+        // 10. 画面が割れる演出
+        function crackScreen(e) {
+            e.preventDefault(); // 一旦リンクを止める
+            const crack = document.getElementById('crack');
+            const tv = document.getElementById('tv');
+            
+            crack.style.opacity = 1;
+            tv.classList.add('shake-heavy');
+            
+            // ギミック：音の代わりに背景を赤く
+            document.body.style.background = "#ff0000";
+            
+            setTimeout(() => {
+                window.location.href = e.target.href; // 0.5秒後にリンク先へ
+            }, 500);
+        }
+
+        // 11. 追加ギミック：タップするたびに通知が増える
+        function interact() {
+            const container = document.getElementById('notifs');
+            const n = document.createElement('div');
+            n.className = 'notif';
+            n.innerText = notifMsgs[Math.floor(Math.random() * notifMsgs.length)];
+            container.appendChild(n);
+            if(container.children.length > 5) container.removeChild(container.firstChild);
+            
+            // ギミック：稀に警告が出る
+            if(Math.random() > 0.7) document.getElementById('alert').style.display = 'block';
         }
     </script>
 </body>
