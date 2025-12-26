@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>荒教団 - 最終聖域</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>荒教団</title>
     <style>
         :root {
             --main-red: #ff003c;
@@ -12,188 +12,190 @@
         }
 
         body, html {
-            margin: 0; padding: 0;
-            background: #000;
-            height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
+            margin: 0; padding: 0; background: #000;
+            height: 100vh; overflow: hidden;
             font-family: 'Hiragino Mincho ProN', serif;
+            color: white; user-select: none;
         }
 
-        /* 1. テレビの筐体 */
+        /* 筐体 */
         .tv-frame {
-            position: relative;
-            width: 95vw; height: 90vh;
-            max-width: 400px;
-            background: #111;
-            border-radius: 40px;
-            border: 10px solid #222;
-            padding: 15px;
-            box-sizing: border-box;
-            box-shadow: 0 0 100px rgba(255,0,0,0.3);
+            position: relative; width: 95vw; height: 92vh;
+            max-width: 400px; background: #111;
+            border-radius: 40px; border: 10px solid #222;
+            padding: 15px; box-sizing: border-box;
+            transition: transform 0.1s;
         }
 
         .screen {
-            position: relative;
-            width: 100%; height: 100%;
-            background: var(--bg-black);
-            border-radius: 25px;
-            overflow: hidden;
-            display: flex; flex-direction: column;
+            position: relative; width: 100%; height: 100%;
+            background: var(--bg-black); border-radius: 25px;
+            overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* 2. 画面割れ演出用オーバーレイ */
-        .crack-overlay {
-            position: absolute;
-            inset: 0;
-            background: url('https://i.imgur.com/vHPTpU3.png'); /* 透過の割れ目画像 */
-            background-size: cover;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 100;
+        /* ギミック：画面割れ（複数段階） */
+        .crack {
+            position: absolute; inset: 0; z-index: 100;
+            background-size: cover; pointer-events: none; opacity: 0;
             filter: invert(1);
         }
 
-        /* 3. 走査線とノイズ */
+        /* ギミック：砂嵐と走査線 */
         .scanlines {
-            position: absolute; inset: 0;
-            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.4) 2px);
-            z-index: 50; pointer-events: none;
+            position: absolute; inset: 0; z-index: 50; pointer-events: none;
+            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.3) 2px);
         }
 
-        /* 4. 教典エリア（3秒で変わる） */
-        .scripture-box {
-            padding: 20px;
-            text-align: center;
-            color: #fff;
-            min-height: 80px;
-            font-size: 0.9rem;
-            border-bottom: 1px double var(--main-red);
+        /* ギミック：VHSノイズバー */
+        .vhs-bar {
+            position: absolute; width: 100%; height: 5px;
+            background: rgba(255,255,255,0.1);
+            top: -10px; z-index: 45;
+            animation: vhs-move 8s linear infinite;
+        }
+
+        /* 教典 */
+        .scripture {
+            padding: 20px; text-align: center; height: 100px;
+            font-size: 0.9rem; border-bottom: 1px double var(--main-red);
             display: flex; align-items: center; justify-content: center;
+            text-shadow: 0 0 5px var(--main-red);
         }
 
-        /* 5. 色収差タイトル */
-        .glitch-text {
-            color: #fff;
-            text-align: center;
-            font-size: 2.5rem;
+        .glitch-title {
+            font-size: 3rem; text-align: center;
             text-shadow: -2px 0 var(--glitch-blue), 2px 0 var(--main-red);
-            animation: shake 0.2s infinite;
+            animation: jitter 0.1s infinite; margin: 20px 0;
         }
 
-        /* 6. 入信ボタン */
+        /* ボタン */
+        .btn-container { text-align: center; flex-grow: 1; }
         .join-btn {
-            margin: 20px auto;
-            padding: 15px 40px;
-            background: none;
-            color: var(--main-red);
-            border: 2px solid var(--main-red);
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 60;
-            text-decoration: none;
+            display: inline-block; padding: 15px 30px;
+            border: 2px solid var(--main-red); color: var(--main-red);
+            text-decoration: none; font-size: 1.5rem;
+            transition: 0.1s; position: relative;
         }
 
-        /* 7. 通知リスト */
-        .notifications {
-            position: absolute; bottom: 10px; right: 10px;
-            display: flex; flex-direction: column-reverse; gap: 4px;
-        }
+        /* 通知エリア */
+        .notifs { position: absolute; bottom: 10px; right: 10px; z-index: 60; }
         .notif {
-            background: rgba(255,0,0,0.2);
-            color: #fff; font-size: 0.6rem; padding: 5px;
-            border-left: 2px solid var(--main-red);
-            animation: slide 0.2s ease;
+            background: rgba(255,0,0,0.3); font-size: 0.7rem;
+            padding: 5px 10px; margin-top: 5px; border-left: 3px solid var(--main-red);
+            animation: slideIn 0.3s forwards;
         }
 
-        /* アニメーション */
-        @keyframes shake {
+        /* アニメーション群 */
+        @keyframes jitter {
             0% { transform: translate(0); }
-            50% { transform: translate(-1px, 1px); }
-            100% { transform: translate(1px, -1px); }
+            50% { transform: translate(-2px, 1px); }
+            100% { transform: translate(2px, -1px); }
         }
-        @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes vhs-move { 0% { top: -10%; } 100% { top: 110%; } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         
-        /* 画面が割れた時の衝撃 */
-        .shake-heavy { animation: heavy-shake 0.5s; }
-        @keyframes heavy-shake {
-            0%, 100% { transform: translate(0); }
-            20% { transform: translate(-10px, 10px); }
-            40% { transform: translate(10px, -10px); }
-        }
+        /* 狂気モード用 */
+        .invert { filter: invert(1) !important; }
     </style>
 </head>
-<body onclick="interact()">
+<body oncontextmenu="return false;">
 
     <div class="tv-frame" id="tv">
         <div class="screen" id="screen">
-            <div class="crack-overlay" id="crack"></div>
+            <div class="crack" id="crack"></div>
             <div class="scanlines"></div>
+            <div class="vhs-bar"></div>
             
-            <div class="scripture-box" id="scripture">―― 読み込み中 ――</div>
+            <div class="scripture" id="scripture">思考を停止せよ</div>
 
-            <h1 class="glitch-text">荒教団</h1>
+            <h1 class="glitch-title" id="title">荒教団</h1>
             
-            <a href="https://example.com" class="join-btn" onclick="crackScreen(event)">入信</a>
+            <div class="btn-container">
+                <a href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" 
+                   class="join-btn" id="joinBtn">入信</a>
+            </div>
 
-            <div class="notifications" id="notifs"></div>
-            
-            <div id="alert" style="color:yellow; font-size:0.5rem; position:absolute; top:5px; right:10px; display:none;">SIGNAL LOST</div>
+            <div class="notifs" id="notifs"></div>
+            <div id="status" style="position:absolute; bottom:5px; left:10px; font-size:10px; color:#333;">SYNCING...</div>
         </div>
     </div>
 
-    <script>
-        const scriptures = [
-            "全てのノイズは教祖の吐息である",
-            "画面を直視する者は救われる",
-            "1010101... 思考を捨てよ",
-            "あなたのスマホは既に教団の一部です",
-            "過去を消去し、ノイズを受け入れよ",
-            "信じる者はバグの中に光を見る"
-        ];
+<script>
+    const scriptureList = ["全てのノイズは教祖の吐息", "画面を直視せよ", "過去を捨て、バグになれ", "救済は横線の中にある", "1010101...", "背後に注意"];
+    const notifMsgs = ["魂を検知", "視線同期完了", "逃げられません", "思考停止を確認", "666.66Hz"];
+    let crackLevel = 0;
 
-        const notifMsgs = ["接続完了", "魂をアップロード中", "視線を検知", "逃げられません", "救済の準備", "背後に注意"];
+    // 1. 教典3秒更新 & 文字化けギミック
+    setInterval(() => {
+        const s = document.getElementById('scripture');
+        s.innerText = Math.random() > 0.9 ? "助けて助けて助けて" : scriptureList[Math.floor(Math.random()*scriptureList.length)];
+        if(Math.random() > 0.8) s.style.color = "var(--glitch-blue)";
+        else s.style.color = "white";
+    }, 3000);
 
-        // 9. 教典を3秒ごとにランダム変更
-        setInterval(() => {
-            const box = document.getElementById('scripture');
-            box.style.opacity = 0;
-            setTimeout(() => {
-                box.innerText = scriptures[Math.floor(Math.random() * scriptures.length)];
-                box.style.opacity = 1;
-                box.style.color = Math.random() > 0.8 ? '#00f2ff' : '#fff'; // 稀に色が変わる
-            }, 200);
-        }, 3000);
+    // 2. 画面割れ & 入信リンクギミック
+    document.getElementById('joinBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const crack = document.getElementById('crack');
+        crack.style.opacity = 1;
+        crack.style.backgroundImage = "url('https://www.transparenttextures.com/patterns/cracked-glass.png')";
+        document.body.style.backgroundColor = "red";
+        document.getElementById('tv').style.transform = "scale(1.2) rotate(5deg)";
+        
+        setTimeout(() => {
+            window.location.href = this.href;
+        }, 600);
+    });
 
-        // 10. 画面が割れる演出
-        function crackScreen(e) {
-            e.preventDefault(); // 一旦リンクを止める
-            const crack = document.getElementById('crack');
-            const tv = document.getElementById('tv');
-            
-            crack.style.opacity = 1;
-            tv.classList.add('shake-heavy');
-            
-            // ギミック：音の代わりに背景を赤く
-            document.body.style.background = "#ff0000";
-            
-            setTimeout(() => {
-                window.location.href = e.target.href; // 0.5秒後にリンク先へ
-            }, 500);
+    // 3. クリックするたびに通知 & 画面の揺れ
+    document.body.addEventListener('click', () => {
+        const nContainer = document.getElementById('notifs');
+        const n = document.createElement('div');
+        n.className = 'notif';
+        n.innerText = notifMsgs[Math.floor(Math.random()*notifMsgs.length)];
+        nContainer.appendChild(n);
+        if(nContainer.children.length > 4) nContainer.removeChild(nContainer.firstChild);
+        
+        // 4. 偽のデッドピクセル追加
+        const dot = document.createElement('div');
+        dot.style.cssText = `position:absolute; width:2px; height:2px; background:red; top:${Math.random()*100}%; left:${Math.random()*100}%; z-index:200;`;
+        document.getElementById('screen').appendChild(dot);
+    });
+
+    // 5. 稀に発生する画面反転（狂気モード）
+    setInterval(() => {
+        if(Math.random() > 0.95) {
+            document.body.classList.add('invert');
+            setTimeout(() => document.body.classList.remove('invert'), 200);
         }
+    }, 2000);
 
-        // 11. 追加ギミック：タップするたびに通知が増える
-        function interact() {
-            const container = document.getElementById('notifs');
-            const n = document.createElement('div');
-            n.className = 'notif';
-            n.innerText = notifMsgs[Math.floor(Math.random() * notifMsgs.length)];
-            container.appendChild(n);
-            if(container.children.length > 5) container.removeChild(container.firstChild);
-            
-            // ギミック：稀に警告が出る
-            if(Math.random() > 0.7) document.getElementById('alert').style.display = 'block';
+    // 6. 長押しで「真実」のメッセージ
+    let pressTimer;
+    document.body.addEventListener('mousedown', () => {
+        pressTimer = setTimeout(() => {
+            document.getElementById('scripture').innerText = "あなたは選ばれました";
+            document.getElementById('scripture').style.color = "yellow";
+        }, 1000);
+    });
+    document.body.addEventListener('mouseup', () => clearTimeout(pressTimer));
+
+    // 7. タブのタイトルをこっそり変える
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            document.title = "逃げないで";
+        } else {
+            document.title = "荒教団";
         }
-    </script>
+    });
+
+    // 8. マウスストーカー（視線追従）風の歪み
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 10;
+        const y = (e.clientY / window.innerHeight - 0.5) * 10;
+        document.getElementById('tv').style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+</script>
 </body>
 </html>
