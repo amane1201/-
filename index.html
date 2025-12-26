@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>荒教団 - 公式聖域</title>
+    <style>
+        :root {
+            --tv-frame-color: #1a1a1a;
+            --screen-bg: #0d0208;
+            --main-color: #ff004c; /* 禍々しい赤 */
+            --glow-color: rgba(255, 0, 76, 0.6);
+        }
+
+        body {
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: "MS Serif", "New York", serif;
+        }
+
+        /* ドラム缶テレビの外枠 */
+        .tv-frame {
+            position: relative;
+            width: 320px;
+            height: 500px;
+            background: var(--tv-frame-color);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 
+                inset 0 0 20px #000,
+                0 20px 50px rgba(0,0,0,0.8),
+                0 0 10px rgba(255,255,255,0.1);
+            border: 4px solid #222;
+        }
+
+        /* 画面エリア */
+        .screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--screen-bg);
+            border-radius: 30px;
+            overflow: hidden;
+            border: 5px solid #111;
+            /* 画面の揺れアニメーション */
+            animation: glitch-shake 5s infinite;
+        }
+
+        /* 走査線レイヤー */
+        .screen::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                rgba(0, 0, 0, 0) 0px,
+                rgba(0, 0, 0, 0) 1px,
+                rgba(0, 0, 0, 0.2) 2px
+            );
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* 画面の反射・ヴィネット */
+        .screen::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.7) 100%);
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        /* コンテンツ */
+        .content {
+            position: relative;
+            z-index: 2;
+            color: var(--main-color);
+            text-align: center;
+            padding-top: 80px;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 0.5rem;
+            margin-bottom: 0;
+            animation: text-flicker 3s infinite;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+
+        /* 荒れている演出：画面の揺れ */
+        @keyframes glitch-shake {
+            0% { transform: translate(0); }
+            1% { transform: translate(-2px, 2px); }
+            2% { transform: translate(2px, -1px); }
+            3% { transform: translate(0); }
+            98% { transform: translate(0); }
+            99% { transform: translate(-3px, 1px); filter: brightness(1.5); }
+            100% { transform: translate(0); }
+        }
+
+        /* 文字のチカチカ */
+        @keyframes text-flicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.9; }
+            20% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        /* 装飾用の砂嵐（ノイズ） */
+        .noise {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/5/5a/Canal_Plus_Static.gif');
+            opacity: 0.05;
+            z-index: 1;
+            mix-blend-mode: screen;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tv-frame">
+        <div class="screen">
+            <div class="noise"></div>
+            <div class="content">
+                <h1>荒教団</h1>
+                <p class="subtitle">―― 思考を放棄せよ ――</p>
+                <div style="margin-top: 100px;">
+                    <button style="background: transparent; border: 1px solid var(--main-color); color: var(--main-color); padding: 10px 20px; cursor: pointer;">入信</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
