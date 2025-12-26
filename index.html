@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>荒教団 - 最終侵食</title>
+    <title>荒教団 - 侵食端末</title>
     <style>
         :root {
             --main-red: #ff003c;
             --glitch-blue: #00f2ff;
-            --bg-black: #050205;
+            --tv-case: #1a1a1a;
         }
 
         body, html {
@@ -16,166 +16,174 @@
             height: 100dvh; width: 100vw;
             overflow: hidden; display: flex; justify-content: center; align-items: center;
             font-family: 'Hiragino Mincho ProN', serif;
-            color: #fff;
         }
 
-        /* 筐体：画面の縁に密着 */
+        /* 【重要】ドラム缶テレビの「丸み」と「厚み」を再現 */
         .tv-frame {
-            position: relative; width: 100vw; height: 100dvh;
-            background: #111; border: 12px solid #222;
-            box-sizing: border-box; display: flex; flex-direction: column;
-            box-shadow: inset 0 0 80px #000; transition: transform 0.1s;
+            position: relative;
+            width: 92vw; height: 85dvh;
+            max-width: 420px;
+            background: var(--tv-case);
+            /* ドラム缶のような強めの角丸 */
+            border-radius: 60px / 100px; 
+            border: 10px solid #222;
+            box-sizing: border-box;
+            /* 外側の立体感（プラスチックの質感） */
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,1),
+                inset 0 0 40px #000,
+                0 0 10px rgba(255,255,255,0.05);
+            padding: 15px;
+            display: flex; flex-direction: column;
         }
 
+        /* 画面：ブラウン管特有の盛り上がり感を出す */
         .screen {
-            position: relative; flex-grow: 1; margin: 8px;
-            background: var(--bg-black); border-radius: 20px;
-            overflow-y: auto; overflow-x: hidden;
-            border: 3px solid #000; animation: flicker 0.15s infinite;
+            position: relative;
+            flex-grow: 1;
+            background: #050205;
+            border-radius: 50px / 80px; /* 画面も丸める */
+            overflow: hidden;
+            border: 6px solid #111;
+            box-shadow: inset 0 0 30px #000;
+            display: flex; flex-direction: column;
+            animation: flicker 0.15s infinite;
         }
 
-        /* 通知スタック */
+        /* タップで広がる赤い円 */
+        .ripple {
+            position: absolute;
+            border: 2px solid var(--main-red);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple-out 0.8s ease-out forwards;
+            z-index: 999;
+        }
+
+        @keyframes ripple-out {
+            from { width: 0; height: 0; opacity: 1; border-width: 4px; }
+            to { width: 300px; height: 300px; opacity: 0; border-width: 1px; }
+        }
+
+        /* 通知・UIパーツ */
         .notif-stack {
-            position: absolute; bottom: 20px; right: 10px;
-            display: flex; flex-direction: column-reverse; gap: 5px;
+            position: absolute; bottom: 20px; right: 20px;
+            display: flex; flex-direction: column-reverse; gap: 8px;
             z-index: 500; pointer-events: none;
         }
         .notif-item {
-            background: rgba(255, 0, 60, 0.2); border-left: 4px solid var(--main-red);
-            padding: 8px 12px; font-size: 0.7rem; backdrop-filter: blur(5px);
-            animation: slideIn 0.3s ease-out forwards; min-width: 150px;
+            background: rgba(255, 0, 60, 0.3); border-left: 3px solid var(--main-red);
+            padding: 10px; font-size: 0.7rem; backdrop-filter: blur(5px);
+            animation: slideIn 0.3s forwards; color: #fff;
         }
 
-        /* 隠しギミック：サブリミナル */
-        #subliminal {
-            position: fixed; inset: 0;
-            background: url('https://i.giphy.com/media/oEI9uWUzn938I/giphy.gif');
-            background-size: cover; opacity: 0; pointer-events: none;
-            z-index: 1000; mix-blend-mode: color-dodge;
-        }
-
-        /* 走査線 */
-        .scanlines {
-            position: fixed; inset: 0; z-index: 100; pointer-events: none;
-            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.3) 2px);
-        }
-
-        /* 入信ボタン */
         .join-btn {
-            display: block; width: 70%; margin: 30px auto; padding: 20px;
-            border: 2px solid var(--main-red); color: var(--main-red);
-            background: rgba(255,0,0,0.05); text-decoration: none; font-size: 1.6rem;
-            text-align: center; position: relative; z-index: 20;
-            text-shadow: 0 0 10px var(--main-red);
+            display: block; width: 60%; margin: 20px auto; padding: 15px;
+            border: 1px solid var(--main-red); color: var(--main-red);
+            background: rgba(255,0,0,0.1); text-decoration: none; font-size: 1.4rem;
+            text-align: center; border-radius: 30px; transition: 0.2s;
+        }
+        .join-btn:active { background: var(--main-red); color: #000; }
+
+        .scanlines {
+            position: absolute; inset: 0; z-index: 100; pointer-events: none;
+            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.4) 2px);
         }
 
-        /* アニメーション */
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes flicker { 0% { opacity: 0.98; } 100% { opacity: 1; } }
-        @keyframes glitch-jump { 0% { transform: translate(0); } 10% { transform: translate(-5px, 5px); } 100% { transform: translate(0); } }
-
-        .glitch-active { animation: glitch-jump 0.1s infinite; filter: hue-rotate(90deg) invert(1); }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="subliminal"></div>
-
     <div class="tv-frame" id="frame">
+        <div style="height: 15px; display: flex; justify-content: center; gap: 10px; margin-bottom: 5px;">
+            <div style="width: 40px; height: 4px; background: #333; border-radius: 2px;"></div>
+        </div>
+
         <div class="screen" id="screen">
             <div class="scanlines"></div>
-
-            <div style="padding: 50px 20px; text-align: center; position: relative; z-index: 10;">
-                <h1 id="title" style="font-size: 3.5rem; letter-spacing: -5px; margin: 0; text-shadow: 3px 0 var(--glitch-blue), -3px 0 var(--main-red);">荒教団</h1>
-                <p id="counter" style="color: #444; font-size: 0.8rem;">接続人数: 0666412</p>
-            </div>
-
-            <a href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" 
-               class="join-btn" id="joinBtn">入信</a>
-
-            <div class="activity-section" id="activity">
-                <h2 style="color: var(--main-red);">■ 聖域活動報告</h2>
-                <p id="activity-text">思考の初期化を開始しました...<br>
-                   全端末の同期を要請中...<br>
-                   バグは「神」の啓示である。</p>
-                <div id="random-msg" style="color: var(--glitch-blue); font-size: 0.7rem;"></div>
-            </div>
             
-            <div style="height: 200px;"></div>
+            <div style="padding: 40px 10px; text-align: center;">
+                <h1 style="font-size: 2.8rem; margin: 0; text-shadow: 2px 0 var(--glitch-blue), -2px 0 var(--main-red); letter-spacing: -2px;">荒教団</h1>
+                <p id="msg" style="color: var(--main-red); font-size: 0.7rem; margin-top: 10px;">―― 侵食率: 0.0% ――</p>
+            </div>
+
+            <a href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" class="join-btn">入信</a>
+
+            <div style="padding: 20px; font-size: 0.8rem; line-height: 1.6;">
+                <h3 style="color: var(--main-red); border-bottom: 1px solid;">■ 聖域活動録</h3>
+                <p>・思考停止プロトコル<br>・視覚ノイズの最適化<br>・現実のバグ修正</p>
+                <div id="random-msg" style="color: var(--glitch-blue); font-size: 0.6rem; min-height: 1em;"></div>
+            </div>
+
             <div class="notif-stack" id="notifBox"></div>
+        </div>
+
+        <div style="height: 30px; display: flex; justify-content: center; align-items: center; gap: 30px; margin-top: 10px;">
+            <div style="width: 15px; height: 15px; border-radius: 50%; background: #222; border: 2px solid #333;"></div>
+            <div style="width: 40px; height: 8px; border-radius: 4px; background: #333;"></div>
+            <div style="width: 15px; height: 15px; border-radius: 50%; background: #222; border: 2px solid #333;"></div>
         </div>
     </div>
 
-    <script>
-        const notifMsgs = ["誰かが入信しました", "監視カメラが起動中", "背後に熱源を検知", "思考の漏洩を確認", "教祖があなたを見ています", "データの書き換え完了"];
-        const notifBox = document.getElementById('notifBox');
+<script>
+    const screen = document.getElementById('screen');
+    const notifBox = document.getElementById('notifBox');
+    const notifMsgs = ["接続完了", "魂をスキャン中", "背後に注意", "思考を放棄せよ", "誰かが入信", "信号微弱"];
 
-        // 1. 自動通知ギミック (5秒に1回)
-        setInterval(() => {
-            const n = document.createElement('div');
-            n.className = 'notif-item';
-            n.innerText = notifMsgs[Math.floor(Math.random() * notifMsgs.length)];
-            notifBox.appendChild(n);
-            if(notifBox.children.length > 5) notifBox.removeChild(notifBox.firstChild);
-        }, 5000);
+    // 1. タップで広がる赤い円（ギミック復活）
+    document.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        createRipple(touch.pageX, touch.pageY);
+    });
+    document.addEventListener('mousedown', (e) => {
+        createRipple(e.pageX, e.pageY);
+    });
 
-        // 2. 隠しギミック：長押しで「真実」
-        let pressTimer;
-        const screen = document.getElementById('screen');
-        screen.addEventListener('touchstart', (e) => {
-            pressTimer = setTimeout(() => {
-                document.getElementById('activity-text').innerHTML = "1. 記憶の全消去<br>2. 存在の抹消<br>3. 永遠のノイズへの回帰";
-                document.getElementById('activity-text').style.color = "var(--main-red)";
-                document.body.style.filter = "invert(1) hue-rotate(180deg)";
-            }, 2000);
-        });
-        screen.addEventListener('touchend', () => {
-            clearTimeout(pressTimer);
-            document.body.style.filter = "none";
-        });
+    function createRipple(x, y) {
+        const r = document.createElement('div');
+        r.className = 'ripple';
+        r.style.left = x + 'px';
+        r.style.top = y + 'px';
+        document.body.appendChild(r);
+        setTimeout(() => r.remove(), 800);
+    }
 
-        // 3. 隠しギミック：7回タップで強烈なバグ
-        let tapCount = 0;
-        document.body.addEventListener('click', (e) => {
-            tapCount++;
-            if(tapCount % 7 === 0) {
-                const sub = document.getElementById('subliminal');
-                const frame = document.getElementById('frame');
-                sub.style.opacity = "0.8";
-                frame.style.transform = "scale(1.2) rotate(5deg)";
-                setTimeout(() => {
-                    sub.style.opacity = "0";
-                    frame.style.transform = "none";
-                }, 150);
-            }
-            // タップ位置への振動エフェクト
-            const frame = document.getElementById('frame');
-            frame.style.transform = `translate(${(Math.random()-0.5)*15}px, ${(Math.random()-0.5)*15}px)`;
-            setTimeout(() => frame.style.transform = "none", 50);
-        });
+    // 2. 自動通知ギミック
+    setInterval(() => {
+        const n = document.createElement('div');
+        n.className = 'notif-item';
+        n.innerText = notifMsgs[Math.floor(Math.random() * notifMsgs.length)];
+        notifBox.appendChild(n);
+        if(notifBox.children.length > 4) notifBox.removeChild(notifBox.firstChild);
+    }, 4000);
 
-        // 4. カウンターの高速変動
-        setInterval(() => {
-            document.getElementById('counter').innerText = "接続人数: " + Math.floor(Math.random() * 9999999).toString().padStart(7, '0');
-        }, 100);
+    // 3. 侵食率カウンター
+    let p = 0;
+    setInterval(() => {
+        if(p < 100) {
+            p += Math.random() * 0.5;
+            document.getElementById('msg').innerText = `―― 侵食率: ${p.toFixed(1)}% ――`;
+        }
+    }, 2000);
 
-        // 5. 入信ボタン演出
-        document.getElementById('joinBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.body.classList.add('glitch-active');
-            setTimeout(() => { window.location.href = this.href; }, 800);
-        });
+    // 4. 教典ランダム
+    const quotes = ["ノイズを愛せ", "次はあなたの番", "思考は病である", "境界線は消えた"];
+    setInterval(() => {
+        document.getElementById('random-msg').innerText = ">> " + quotes[Math.floor(Math.random()*quotes.length)];
+    }, 2500);
 
-        // 6. タブのタイトルをこっそり変える
-        document.addEventListener('visibilitychange', () => {
-            document.title = document.hidden ? "逃げないで" : "荒教団 - 侵食中";
-        });
-
-        // 7. 教典メッセージ
-        const quotes = ["思考は病である", "ノイズを愛せ", "次はあなたの番です", "救済まであと僅か"];
-        setInterval(() => {
-            document.getElementById('random-msg').innerText = ">> " + quotes[Math.floor(Math.random()*quotes.length)];
-        }, 2000);
-    </script>
+    // 5. 隠しギミック：7回タップでバグ
+    let taps = 0;
+    document.body.addEventListener('click', () => {
+        taps++;
+        if(taps % 7 === 0) {
+            document.body.style.filter = "invert(1) hue-rotate(90deg)";
+            setTimeout(() => document.body.style.filter = "none", 100);
+        }
+    });
+</script>
 </body>
 </html>
