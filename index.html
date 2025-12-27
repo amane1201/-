@@ -2,7 +2,9 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>荒教団</title>
 
 <style>
@@ -12,39 +14,60 @@
   --bg:#050205;
 }
 
+*{
+  box-sizing:border-box;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
 html,body{
   margin:0;
-  width:100vw;
-  height:100dvh;
+  width:100%;
+  height:100%;
   background:#000;
   overflow:hidden;
   font-family:'Hiragino Mincho ProN',serif;
 }
 
-/* ===== TV ===== */
+/* ===== TV 枠（触れない） ===== */
 .tv{
-  width:100vw;
-  height:100dvh;
-  background:#151515;
-  border:15px solid #222;
-  border-radius:40px;
-  box-shadow:inset 0 0 50px #000;
-  display:flex;
+  position:relative;
+  width:100%;
+  height:100%;
+  padding:18px;
+  background:#111;
 }
 
+.tv-frame{
+  position:absolute;
+  inset:0;
+  border-radius:36px;
+  border:14px solid #222;
+  box-shadow:inset 0 0 60px #000;
+  pointer-events:none;
+}
+
+/* ===== 実画面 ===== */
 .screen{
   position:relative;
-  margin:10px;
-  flex:1;
+  width:100%;
+  height:100%;
+  border-radius:28px;
+  background:#000;
+  overflow:hidden;
+}
+
+/* 実際に触るレイヤー */
+.screen-inner{
+  position:absolute;
+  inset:0;
   background:var(--bg);
-  border-radius:30px;
-  border:5px solid #000;
-  overflow-y:auto;
   color:#ddd;
+  overflow:hidden;
 }
 
 /* ===== 走査線 ===== */
-.screen::after{
+.screen-inner::after{
   content:"";
   position:absolute;
   inset:0;
@@ -53,11 +76,11 @@ html,body{
     rgba(0,0,0,.25) 50%
   );
   background-size:100% 4px;
-  z-index:10;
+  z-index:30;
   pointer-events:none;
 }
 
-/* ===== 電源ON/OFF ===== */
+/* ===== 電源ON ===== */
 .boot{
   position:absolute;
   inset:0;
@@ -67,47 +90,36 @@ html,body{
   justify-content:center;
   align-items:center;
 }
-
 .boot-line{
   width:0;
   height:2px;
   background:#fff;
+  animation:boot 1.2s forwards;
 }
-
-.boot.on .boot-line{animation:bootOn 1.3s forwards;}
-.boot.off .boot-line{width:100%;animation:bootOff .5s forwards;}
-
-@keyframes bootOn{
-  0%{width:0;height:2px}
-  30%{width:100%;height:2px}
+@keyframes boot{
+  30%{width:100%}
   60%{filter:blur(2px)}
   100%{width:100%;height:100%}
-}
-@keyframes bootOff{
-  0%{height:100%}
-  100%{height:2px}
 }
 
 /* ===== 教典 ===== */
 .header{
   text-align:center;
-  padding:30px 10px;
+  padding:28px 10px;
 }
 .glitch{
-  font-size:2.6rem;
-  color:#fff;
+  font-size:2.4rem;
   text-shadow:-2px 0 var(--blue),2px 0 var(--red);
 }
-
 .scripture{
   padding:20px;
-  font-size:.85rem;
+  font-size:.8rem;
   line-height:2;
 }
 .scripture p{
-  margin:25px 0;
   border-left:2px solid var(--blue);
   padding-left:10px;
+  margin:22px 0;
   color:#aaa;
 }
 
@@ -115,30 +127,15 @@ html,body{
 .join{
   margin:30px auto;
   width:200px;
-  padding:15px;
+  padding:14px;
   text-align:center;
   border:2px solid var(--red);
   color:var(--red);
   user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-  touch-action:none;
 }
 .join.hold{
-  color:#fff;
   background:rgba(255,0,60,.4);
-}
-
-/* ===== 割れ ===== */
-.crack{
-  position:absolute;
-  inset:0;
-  opacity:0;
-  pointer-events:none;
-  background:
-    linear-gradient(45deg,transparent 48%,#fff 50%,transparent 52%),
-    linear-gradient(-30deg,transparent 48%,#fff 50%,transparent 52%);
-  mix-blend-mode:screen;
+  color:#fff;
 }
 
 /* ===== 波紋 ===== */
@@ -147,8 +144,6 @@ html,body{
   width:20px;
   height:20px;
   border-radius:50%;
-  pointer-events:none;
-  z-index:5;
   background:radial-gradient(
     circle,
     rgba(0,242,255,.4),
@@ -157,29 +152,50 @@ html,body{
   );
   transform:scale(0);
   animation:ripple 1s ease-out forwards;
-  mix-blend-mode:screen;
+  pointer-events:none;
+  z-index:10;
 }
 @keyframes ripple{
   to{transform:scale(18);opacity:0}
 }
 
-/* ===== 通知 ===== */
-.notify{
+/* ===== 割れ ===== */
+.shatter{
+  position:absolute;
+  inset:0;
+  z-index:40;
+  pointer-events:none;
+}
+.shard{
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  animation:shard .8s ease-out forwards;
+}
+@keyframes shard{
+  to{
+    transform:translate(var(--dx),var(--dy)) scale(1.1);
+    opacity:0;
+  }
+}
+
+/* ===== 通知ログ ===== */
+.notify-box{
   position:fixed;
-  right:10px;
-  bottom:10px;
-  width:220px;
+  right:12px;
+  bottom:12px;
+  width:230px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  z-index:100;
+}
+.notify{
   background:#111;
   border-left:3px solid var(--red);
-  padding:10px;
-  font-size:.7rem;
+  padding:8px;
+  font-size:.65rem;
   color:#ccc;
-  box-shadow:0 0 10px #000;
-  animation:pop .3s;
-}
-@keyframes pop{
-  from{transform:translateY(20px);opacity:0}
-  to{transform:none;opacity:1}
 }
 </style>
 </head>
@@ -187,99 +203,127 @@ html,body{
 <body>
 
 <div class="tv">
-  <div class="screen" id="screen">
+  <div class="tv-frame"></div>
 
-    <div class="boot on" id="boot"><div class="boot-line"></div></div>
-    <div class="crack" id="crack"></div>
+  <div class="screen">
+    <div class="screen-inner" id="screen">
 
-    <div class="header">
-      <h1 class="glitch">荒教団</h1>
-      <p style="font-size:.7rem;color:#666;">SERIAL: 000-ARASH-666</p>
+      <div class="boot" id="boot">
+        <div class="boot-line"></div>
+      </div>
+
+      <div class="header">
+        <div class="glitch">荒教団</div>
+        <div style="font-size:.65rem;color:#666">SERIAL: ARASH-000</div>
+      </div>
+
+      <div class="scripture">
+        <p>―― 接続は既に完了している</p>
+        <p>―― 拒否は記録されない</p>
+        <p>―― 観測は継続中</p>
+        <p>―― 入信とは破壊である</p>
+      </div>
+
+      <div class="join" id="join">長押しで入信</div>
     </div>
-
-    <div class="scripture">
-      <p>―― 画面を見た瞬間、接続は開始された</p>
-      <p>―― 拒否は応答として記録されない</p>
-      <p>―― 思考は遅延し、判断は代行される</p>
-      <p>―― ノイズは意思の代替物である</p>
-      <p>―― あなたの操作は観測されている</p>
-    </div>
-
-    <div class="join" id="join">長押しで入信</div>
-
-    <div style="height:200px"></div>
   </div>
 </div>
 
+<div class="notify-box" id="notifyBox"></div>
+
 <script>
-/* ===== 電源ON ===== */
-setTimeout(()=>document.getElementById('boot').remove(),1300);
+document.addEventListener('gesturestart', e => e.preventDefault());
 
-/* ===== 電源OFF ===== */
-window.addEventListener('pagehide',()=>{
-  const b=document.createElement('div');
-  b.className='boot off';
-  b.innerHTML='<div class="boot-line"></div>';
-  document.getElementById('screen').appendChild(b);
-});
+/* boot */
+setTimeout(()=>boot.remove(),1200);
 
-/* ===== 波紋 & 干渉カウント ===== */
 const screen=document.getElementById('screen');
+const box=document.getElementById('notifyBox');
 let interference=0;
 
+/* 波紋 */
 screen.addEventListener('pointerdown',e=>{
   const r=screen.getBoundingClientRect();
-  const rip=document.createElement('span');
+  const x=e.clientX-r.left;
+  const y=e.clientY-r.top;
+
+  const rip=document.createElement('div');
   rip.className='ripple';
-  rip.style.left=`${e.clientX-r.left-10}px`;
-  rip.style.top =`${e.clientY-r.top -10}px`;
+  rip.style.left=`${x-10}px`;
+  rip.style.top =`${y-10}px`;
   screen.appendChild(rip);
   rip.onanimationend=()=>rip.remove();
 
   interference++;
 });
 
-/* ===== 通知 ===== */
-const baseMsgs=[
-  "接続が上書きされました",
-  "第三観測者が参加",
-  "通信が不安定です",
-  "思考ログ取得中"
-];
-setInterval(()=>{
+/* 通知蓄積 */
+function notify(t){
   const n=document.createElement('div');
   n.className='notify';
-  n.textContent=
-    interference>15
-    ? "過剰な干渉を検出"
-    : baseMsgs[Math.floor(Math.random()*baseMsgs.length)];
-  document.body.appendChild(n);
-  setTimeout(()=>n.remove(),4000);
-},2500);
+  n.textContent=t;
+  box.prepend(n);
+  if(box.children.length>8){
+    box.lastChild.remove();
+  }
+}
 
-/* ===== 長押し入信 ===== */
+setInterval(()=>{
+  notify(
+    interference>20
+    ? "過剰干渉を検出"
+    : "外部観測ログ受信"
+  );
+},2600);
+
+/* 入信 */
 const btn=document.getElementById('join');
-let t;
+let timer,cancel=false;
 
 btn.addEventListener('pointerdown',e=>{
   e.preventDefault();
+  cancel=false;
   btn.classList.add('hold');
   btn.textContent="接続中…";
-  t=setTimeout(()=>{
-    document.getElementById('crack').style.opacity=1;
-    setTimeout(()=>{
-      location.href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w";
-    },500);
-  },3000);
+  timer=setTimeout(shatter,2800);
+});
+btn.addEventListener('pointerup',reset);
+btn.addEventListener('pointerleave',reset);
+btn.addEventListener('touchstart',e=>{
+  if(e.touches.length>1) cancel=true;
 });
 
-['pointerup','pointerleave','pointercancel'].forEach(ev=>{
-  btn.addEventListener(ev,()=>{
-    clearTimeout(t);
-    btn.classList.remove('hold');
-    btn.textContent="長押しで入信";
-  });
-});
+function reset(){
+  clearTimeout(timer);
+  btn.classList.remove('hold');
+  btn.textContent="長押しで入信";
+}
+
+function shatter(){
+  const s=document.createElement('div');
+  s.className='shatter';
+  const count=Math.min(12,4+Math.floor(interference/4));
+
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');
+    p.className='shard';
+    p.style.clipPath=`polygon(50% 50%, ${Math.random()*100}% 0, 100% ${Math.random()*100}%)`;
+    const a=Math.random()*360;
+    p.style.setProperty('--dx',`${Math.cos(a)*200}px`);
+    p.style.setProperty('--dy',`${Math.sin(a)*200}px`);
+    s.appendChild(p);
+  }
+  screen.appendChild(s);
+
+  if(cancel){
+    notify("拒絶反応を確認");
+    return;
+  }
+
+  setTimeout(()=>{
+    notify("接続確定");
+  },600);
+}
 </script>
 
 </body>
