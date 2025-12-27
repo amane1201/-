@@ -12,48 +12,19 @@
     --bg-black:#050205;
 }
 
-/* ===== 全画面 ===== */
 html,body{
     margin:0;
-    padding:0;
     width:100vw;
     height:100dvh;
-    overflow:hidden;
     background:#000;
+    overflow:hidden;
     display:flex;
     justify-content:center;
     align-items:center;
     font-family:'Hiragino Mincho ProN',serif;
 }
 
-/* ===== 電源ON演出 ===== */
-#boot{
-    position:fixed;
-    inset:0;
-    background:#000;
-    z-index:9999;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-#boot-line{
-    width:0;
-    height:2px;
-    background:#fff;
-    animation:boot-line 1.2s ease-out forwards;
-}
-
-@keyframes boot-line{
-    0%{width:0}
-    50%{width:80vw}
-    100%{
-        width:100vw;
-        height:100vh;
-    }
-}
-
-/* ===== TV筐体 ===== */
+/* ===== TV ===== */
 .tv-frame{
     position:relative;
     width:100vw;
@@ -64,10 +35,8 @@ html,body{
     box-shadow:inset 0 0 50px #000;
     display:flex;
     flex-direction:column;
-    opacity:0;
 }
 
-/* ===== 画面 ===== */
 .screen{
     position:relative;
     flex:1;
@@ -75,36 +44,58 @@ html,body{
     background:var(--bg-black);
     border-radius:30px;
     border:5px solid #000;
-    overflow-y:auto;
-    animation:flicker .15s infinite;
+    overflow:hidden;
 }
 
-.screen::after{
-    content:"";
+/* ===== 電源ON/OFF ===== */
+.boot-overlay{
     position:absolute;
     inset:0;
-    background:repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,0) 0px,
-        rgba(0,0,0,.25) 3px
-    );
-    pointer-events:none;
+    background:#000;
+    z-index:50;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-/* ===== ヘッダー ===== */
+.boot-line{
+    width:0;
+    height:2px;
+    background:#fff;
+}
+
+.boot-on .boot-line{
+    animation:bootOn 1s ease-out forwards;
+}
+
+.boot-off .boot-line{
+    width:100%;
+    animation:bootOff .5s ease-in forwards;
+}
+
+@keyframes bootOn{
+    0%{width:0;height:2px}
+    60%{width:100%;height:2px}
+    100%{width:100%;height:100%}
+}
+
+@keyframes bootOff{
+    0%{height:100%}
+    100%{height:2px}
+}
+
+/* ===== UI ===== */
 .header{
     text-align:center;
     padding:30px 10px;
+    color:#fff;
 }
 
 .glitch-title{
     font-size:2.8rem;
-    color:#fff;
-    margin:0;
     text-shadow:-2px 0 var(--glitch-blue),2px 0 var(--main-red);
 }
 
-/* ===== 長押し入信 ===== */
 .join-btn{
     width:200px;
     margin:20px auto;
@@ -113,121 +104,88 @@ html,body{
     border:2px solid var(--main-red);
     color:var(--main-red);
     font-size:1.3rem;
-    font-weight:bold;
     background:rgba(255,0,60,.1);
     user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    touch-action:none;
 }
 
 .join-btn.holding{
-    background:rgba(255,0,60,.4);
-    animation:pulse .6s infinite;
     color:#fff;
+    background:rgba(255,0,60,.4);
 }
 
-@keyframes pulse{
-    0%{box-shadow:0 0 5px var(--main-red)}
-    50%{box-shadow:0 0 20px var(--main-red)}
-    100%{box-shadow:0 0 5px var(--main-red)}
-}
-
-/* ===== 活動 ===== */
-.activity-section{
-    padding:20px;
-    color:#ddd;
-    font-size:.85rem;
-    border-top:1px solid #333;
-    background:rgba(20,0,0,.5);
-}
-
-.activity-section h2{
-    color:var(--main-red);
-    border-bottom:1px solid var(--main-red);
-    display:inline-block;
-}
-
-/* ===== 画面割れ ===== */
-.crack-overlay{
+/* ===== 割れ ===== */
+.crack{
     position:absolute;
     inset:0;
     opacity:0;
     pointer-events:none;
     background:
-        linear-gradient(45deg,transparent 48%,#fff 50%,transparent 52%),
-        linear-gradient(-30deg,transparent 48%,#fff 50%,transparent 52%);
+      linear-gradient(45deg,transparent 48%,#fff 50%,transparent 52%);
     mix-blend-mode:screen;
-}
-
-@keyframes flicker{
-    0%{opacity:.98}
-    50%{opacity:1}
-    100%{opacity:.97}
 }
 </style>
 </head>
 
 <body>
 
-<!-- 電源ON -->
-<div id="boot">
-    <div id="boot-line"></div>
-</div>
+<div class="tv-frame">
+    <div class="screen" id="screen">
 
-<div class="tv-frame" id="frame">
-    <div class="screen">
-        <div class="crack-overlay" id="crack"></div>
+        <div class="boot-overlay boot-on" id="boot">
+            <div class="boot-line"></div>
+        </div>
+
+        <div class="crack" id="crack"></div>
 
         <div class="header">
             <h1 class="glitch-title">荒教団</h1>
-            <p style="font-size:.7rem;color:#666;">SERIAL: 000-ARASH-666</p>
         </div>
 
-        <div class="join-btn" id="join">
-            長押しで入信
-        </div>
+        <div class="join-btn" id="join">長押しで入信</div>
 
-        <div class="activity-section">
-            <h2>■ 活動内容</h2>
-            <ul>
-                <li>デジタル・ノイズによる精神の解脱</li>
-                <li>思考停止プロトコルの配布</li>
-                <li>不定期な一斉サブリミナル儀式</li>
-                <li>現実世界のバグ修正と再構築</li>
-            </ul>
-        </div>
     </div>
 </div>
 
 <script>
-/* ===== 電源ON完了 ===== */
+/* 電源ON完了 */
 setTimeout(()=>{
     document.getElementById('boot').style.display="none";
-    document.getElementById('frame').style.opacity="1";
-},1300);
+},1000);
 
-/* ===== 長押し入信 ===== */
+/* 長押し */
 const btn=document.getElementById('join');
-let timer=null;
+let timer;
 
-btn.addEventListener('pointerdown',()=>{
+btn.addEventListener('pointerdown',e=>{
+    e.preventDefault();
     btn.classList.add('holding');
     btn.textContent="接続中…";
     timer=setTimeout(()=>{
         document.getElementById('crack').style.opacity=1;
-        document.body.style.background="var(--main-red)";
         setTimeout(()=>{
             location.href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w";
         },500);
     },3000);
 });
 
-btn.addEventListener('pointerup',reset);
-btn.addEventListener('pointerleave',reset);
+['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+    btn.addEventListener(ev,()=>{
+        clearTimeout(timer);
+        btn.classList.remove('holding');
+        btn.textContent="長押しで入信";
+    });
+});
 
-function reset(){
-    clearTimeout(timer);
-    btn.classList.remove('holding');
-    btn.textContent="長押しで入信";
-}
+/* 電源OFF */
+window.addEventListener('pagehide',()=>{
+    const boot=document.getElementById('boot');
+    boot.style.display="flex";
+    boot.classList.remove('boot-on');
+    boot.classList.add('boot-off');
+});
 </script>
 
 </body>
