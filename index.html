@@ -1,161 +1,234 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>荒教団 - 最終侵食</title>
-    <style>
-        :root {
-            --main-red: #ff003c;
-            --glitch-blue: #00f2ff;
-            --bg-black: #050205;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>荒教団</title>
 
-        body, html {
-            margin: 0; padding: 0; background: #000;
-            height: 100dvh; width: 100vw;
-            overflow: hidden; display: flex; justify-content: center; align-items: center;
-            font-family: 'Hiragino Mincho ProN', serif;
-            color: #fff;
-        }
+<style>
+:root{
+    --main-red:#ff003c;
+    --glitch-blue:#00f2ff;
+    --bg-black:#050205;
+}
 
-        /* 筐体：画面の縁に密着するタイプに戻しました */
-        .tv-frame {
-            position: relative; width: 100vw; height: 100dvh;
-            background: #111; border: 12px solid #222;
-            box-sizing: border-box; display: flex; flex-direction: column;
-            box-shadow: inset 0 0 80px #000; transition: transform 0.05s;
-        }
+/* ===== 全画面 ===== */
+html,body{
+    margin:0;
+    padding:0;
+    width:100vw;
+    height:100dvh;
+    overflow:hidden;
+    background:#000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:'Hiragino Mincho ProN',serif;
+}
 
-        /* 画面：スクロールを有効に */
-        .screen {
-            position: relative; flex-grow: 1; margin: 5px;
-            background: var(--bg-black); border-radius: 20px;
-            overflow-y: scroll; /* スクロールを強制有効 */
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* iOSでの滑らかなスクロール */
-            border: 3px solid #000; animation: flicker 0.15s infinite;
-        }
+/* ===== 電源ON演出 ===== */
+#boot{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:9999;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
 
-        /* タップで広がる赤い円 */
-        .ripple {
-            position: fixed; /* 画面全体で発生 */
-            border: 2px solid var(--main-red);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            animation: ripple-out 0.8s ease-out forwards;
-            z-index: 9999;
-        }
+#boot-line{
+    width:0;
+    height:2px;
+    background:#fff;
+    animation:boot-line 1.2s ease-out forwards;
+}
 
-        @keyframes ripple-out {
-            from { width: 0; height: 0; opacity: 1; border-width: 4px; }
-            to { width: 250px; height: 250px; opacity: 0; border-width: 1px; }
-        }
+@keyframes boot-line{
+    0%{width:0}
+    50%{width:80vw}
+    100%{
+        width:100vw;
+        height:100vh;
+    }
+}
 
-        /* 通知スタック */
-        .notif-stack {
-            position: absolute; bottom: 20px; right: 10px;
-            display: flex; flex-direction: column-reverse; gap: 5px;
-            z-index: 500; pointer-events: none;
-        }
-        .notif-item {
-            background: rgba(255, 0, 60, 0.2); border-left: 4px solid var(--main-red);
-            padding: 8px 12px; font-size: 0.7rem; backdrop-filter: blur(5px);
-            animation: slideIn 0.3s ease-out forwards; min-width: 150px;
-        }
+/* ===== TV筐体 ===== */
+.tv-frame{
+    position:relative;
+    width:100vw;
+    height:100dvh;
+    background:#151515;
+    border:15px solid #222;
+    border-radius:40px;
+    box-shadow:inset 0 0 50px #000;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+}
 
-        .join-btn {
-            display: block; width: 70%; margin: 30px auto; padding: 20px;
-            border: 1px solid var(--main-red); color: var(--main-red);
-            background: rgba(255,0,0,0.1); text-decoration: none; font-size: 1.6rem;
-            text-align: center; position: relative; z-index: 20;
-            text-shadow: 0 0 10px var(--main-red);
-        }
+/* ===== 画面 ===== */
+.screen{
+    position:relative;
+    flex:1;
+    margin:10px;
+    background:var(--bg-black);
+    border-radius:30px;
+    border:5px solid #000;
+    overflow-y:auto;
+    animation:flicker .15s infinite;
+}
 
-        .scanlines {
-            position: fixed; inset: 0; z-index: 100; pointer-events: none;
-            background: repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0.3) 2px);
-        }
+.screen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,.25) 3px
+    );
+    pointer-events:none;
+}
 
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes flicker { 0% { opacity: 0.98; } 100% { opacity: 1; } }
-    </style>
+/* ===== ヘッダー ===== */
+.header{
+    text-align:center;
+    padding:30px 10px;
+}
+
+.glitch-title{
+    font-size:2.8rem;
+    color:#fff;
+    margin:0;
+    text-shadow:-2px 0 var(--glitch-blue),2px 0 var(--main-red);
+}
+
+/* ===== 長押し入信 ===== */
+.join-btn{
+    width:200px;
+    margin:20px auto;
+    padding:15px;
+    text-align:center;
+    border:2px solid var(--main-red);
+    color:var(--main-red);
+    font-size:1.3rem;
+    font-weight:bold;
+    background:rgba(255,0,60,.1);
+    user-select:none;
+}
+
+.join-btn.holding{
+    background:rgba(255,0,60,.4);
+    animation:pulse .6s infinite;
+    color:#fff;
+}
+
+@keyframes pulse{
+    0%{box-shadow:0 0 5px var(--main-red)}
+    50%{box-shadow:0 0 20px var(--main-red)}
+    100%{box-shadow:0 0 5px var(--main-red)}
+}
+
+/* ===== 活動 ===== */
+.activity-section{
+    padding:20px;
+    color:#ddd;
+    font-size:.85rem;
+    border-top:1px solid #333;
+    background:rgba(20,0,0,.5);
+}
+
+.activity-section h2{
+    color:var(--main-red);
+    border-bottom:1px solid var(--main-red);
+    display:inline-block;
+}
+
+/* ===== 画面割れ ===== */
+.crack-overlay{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    pointer-events:none;
+    background:
+        linear-gradient(45deg,transparent 48%,#fff 50%,transparent 52%),
+        linear-gradient(-30deg,transparent 48%,#fff 50%,transparent 52%);
+    mix-blend-mode:screen;
+}
+
+@keyframes flicker{
+    0%{opacity:.98}
+    50%{opacity:1}
+    100%{opacity:.97}
+}
+</style>
 </head>
+
 <body>
 
-    <div class="tv-frame" id="frame">
-        <div class="screen" id="screen">
-            <div class="scanlines"></div>
+<!-- 電源ON -->
+<div id="boot">
+    <div id="boot-line"></div>
+</div>
 
-            <div style="padding: 50px 20px; text-align: center; position: relative; z-index: 10;">
-                <h1 style="font-size: 3.5rem; letter-spacing: -5px; margin: 0; text-shadow: 3px 0 var(--glitch-blue), -3px 0 var(--main-red);">荒教団</h1>
-                <p id="counter" style="color: #444; font-size: 0.8rem;">接続人数: 0666412</p>
-            </div>
+<div class="tv-frame" id="frame">
+    <div class="screen">
+        <div class="crack-overlay" id="crack"></div>
 
-            <a href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" 
-               class="join-btn" id="joinBtn">入信</a>
+        <div class="header">
+            <h1 class="glitch-title">荒教団</h1>
+            <p style="font-size:.7rem;color:#666;">SERIAL: 000-ARASH-666</p>
+        </div>
 
-            <div style="padding: 25px; background: rgba(0,0,0,0.5); border-top: 1px solid var(--main-red); position: relative; z-index: 10;">
-                <h2 style="color: var(--main-red);">■ 聖域活動報告</h2>
-                <p id="activity-text">
-                    ・思考停止プロトコルの配布<br>
-                    ・デジタル・ノイズによる解脱儀式<br>
-                    ・不純な記憶のデフラグメンテーション<br>
-                    ・現実世界のバグ修正と再構築<br><br>
-                    当教団は、ノイズの中に真理を見出し、<br>
-                    全端末の同期を目指しています。
-                </p>
-                <div id="random-msg" style="color: var(--glitch-blue); font-size: 0.7rem; margin-top: 15px;"></div>
-            </div>
-            
-            <div style="height: 300px;"></div>
-            <div class="notif-stack" id="notifBox"></div>
+        <div class="join-btn" id="join">
+            長押しで入信
+        </div>
+
+        <div class="activity-section">
+            <h2>■ 活動内容</h2>
+            <ul>
+                <li>デジタル・ノイズによる精神の解脱</li>
+                <li>思考停止プロトコルの配布</li>
+                <li>不定期な一斉サブリミナル儀式</li>
+                <li>現実世界のバグ修正と再構築</li>
+            </ul>
         </div>
     </div>
+</div>
 
-    <script>
-        const notifBox = document.getElementById('notifBox');
-        const notifMsgs = ["誰かが入信しました", "監視カメラが起動中", "背後に熱源を検知", "思考を放棄せよ", "データの書き換え完了"];
+<script>
+/* ===== 電源ON完了 ===== */
+setTimeout(()=>{
+    document.getElementById('boot').style.display="none";
+    document.getElementById('frame').style.opacity="1";
+},1300);
 
-        // 1. 赤い波紋ギミック
-        function createRipple(x, y) {
-            const r = document.createElement('div');
-            r.className = 'ripple';
-            r.style.left = x + 'px';
-            r.style.top = y + 'px';
-            document.body.appendChild(r);
-            setTimeout(() => r.remove(), 800);
-        }
-        document.addEventListener('touchstart', (e) => createRipple(e.touches[0].pageX, e.touches[0].pageY));
-        document.addEventListener('mousedown', (e) => createRipple(e.pageX, e.pageY));
+/* ===== 長押し入信 ===== */
+const btn=document.getElementById('join');
+let timer=null;
 
-        // 2. 自動通知
-        setInterval(() => {
-            const n = document.createElement('div');
-            n.className = 'notif-item';
-            n.innerText = notifMsgs[Math.floor(Math.random() * notifMsgs.length)];
-            notifBox.appendChild(n);
-            if(notifBox.children.length > 5) notifBox.removeChild(notifBox.firstChild);
-        }, 5000);
+btn.addEventListener('pointerdown',()=>{
+    btn.classList.add('holding');
+    btn.textContent="接続中…";
+    timer=setTimeout(()=>{
+        document.getElementById('crack').style.opacity=1;
+        document.body.style.background="var(--main-red)";
+        setTimeout(()=>{
+            location.href="https://line.me/ti/g2/-xozZqx4BETwQPFgKCDV-g_Wqu0YtJmwlIIC0w";
+        },500);
+    },3000);
+});
 
-        // 3. カウンター高速変動
-        setInterval(() => {
-            document.getElementById('counter').innerText = "接続人数: " + Math.floor(Math.random() * 9999999).toString().padStart(7, '0');
-        }, 100);
+btn.addEventListener('pointerup',reset);
+btn.addEventListener('pointerleave',reset);
 
-        // 4. 入信ボタン
-        document.getElementById('joinBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('frame').style.filter = "invert(1) hue-rotate(90deg)";
-            setTimeout(() => { window.location.href = this.href; }, 500);
-        });
+function reset(){
+    clearTimeout(timer);
+    btn.classList.remove('holding');
+    btn.textContent="長押しで入信";
+}
+</script>
 
-        // 5. ランダム教典
-        const quotes = ["思考は病である", "ノイズを愛せ", "境界線は消滅した", "次はあなたの番です"];
-        setInterval(() => {
-            document.getElementById('random-msg').innerText = ">> " + quotes[Math.floor(Math.random()*quotes.length)];
-        }, 2000);
-    </script>
 </body>
 </html>
