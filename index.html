@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用語一問一答</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --main:#2e6ff2;
+    --main-light:#eaf1ff;
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --text:#222;
+    --sub:#666;
+    --border:#e2e5ec;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Noto Sans JP",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  header{
+    background:var(--main);
+    color:#fff;
+    padding:14px 16px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  header h1{
+    margin:0 0 10px 0;
+    font-size:18px;
+  }
+  nav{
+    display:flex;
+    gap:8px;
+  }
+  nav button{
+    flex:1;
+    padding:10px 8px;
+    border:none;
+    border-radius:8px;
+    background:rgba(255,255,255,.18);
+    color:#fff;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.15s;
+  }
+  nav button.active{
+    background:#fff;
+    color:var(--main);
+  }
+  main{
+    max-width:720px;
+    margin:0 auto;
+    padding:16px;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ===== 用語一覧 ===== */
+  #searchBox{
+    width:100%;
+    padding:10px 12px;
+    font-size:15px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    margin-bottom:12px;
+    background:#fff;
+  }
+  details.cat{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  details.cat summary{
+    padding:12px 14px;
+    font-weight:700;
+    cursor:pointer;
+    background:var(--main-light);
+    color:var(--main);
+    list-style:none;
+  }
+  details.cat summary::-webkit-details-marker{display:none;}
+  .group-name{
+    font-size:13px;
+    color:var(--sub);
+    font-weight:700;
+    padding:10px 14px 2px;
+  }
+  .term-item{
+    padding:10px 14px;
+    border-top:1px solid var(--border);
+  }
+  .term-item .t{
+    font-weight:700;
+    color:var(--text);
+  }
+  .term-item .a{
+    color:var(--sub);
+    font-size:14px;
+    margin-top:2px;
+  }
+  .term-item.hidden{display:none;}
+  details.cat.hidden{display:none;}
+
+  /* ===== 一問一答 ===== */
+  .quiz-controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .quiz-controls select{
+    flex:1;
+    min-width:150px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+  }
+  .quiz-controls label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:14px;
+    background:#fff;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+  }
+  .quiz-controls button{
+    padding:10px 16px;
+    border:none;
+    border-radius:8px;
+    background:var(--main);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .progress{
+    text-align:center;
+    color:var(--sub);
+    font-size:13px;
+    margin-bottom:8px;
+  }
+  .score{
+    text-align:center;
+    font-size:13px;
+    color:var(--sub);
+    margin-bottom:10px;
+  }
+  .score span{font-weight:700;}
+  .score .ok{color:#2a9d4a;}
+  .score .ng{color:#e4543f;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:16px;
+  }
+  .cat-tag{
+    font-size:12px;
+    color:var(--main);
+    background:var(--main-light);
+    padding:4px 10px;
+    border-radius:20px;
+    font-weight:700;
+  }
+  .question{
+    font-size:24px;
+    font-weight:700;
+    line-height:1.5;
+  }
+  
+  /* ===== 手書きキャンバス ===== */
+  .canvas-wrapper{
+    width:100%;
+    position:relative;
+    margin-bottom:16px;
+  }
+  #drawCanvas{
+    display:block;
+    width:100%;
+    border:2px solid var(--border);
+    border-radius:10px;
+    background:#fff;
+    cursor:crosshair;
+    touch-action:none;
+  }
+  .canvas-controls{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+    flex-wrap:wrap;
+  }
+  .canvas-controls button{
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    background:#eee;
+    color:#333;
+    font-size:13px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .canvas-controls button:hover{
+    background:#ddd;
+  }
+  .canvas-controls input[type="color"]{
+    width:40px;
+    height:32px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .canvas-controls input[type="range"]{
+    flex:1;
+    min-width:100px;
+    min-height:32px;
+  }
+
+  .answer-box{
+    display:none;
+    width:100%;
+    border-top:2px dashed var(--border);
+    padding-top:16px;
+    text-align:left;
+  }
+  .answer-box.show{display:block;}
+  .answer-text{
+    font-family:"Yomogi",sans-serif;
+    font-size:20px;
+    color:#1e4fc0;
+    line-height:1.8;
+    transform:rotate(-0.6deg);
+    animation:fadeIn .4s ease;
+    padding:12px;
+    background:var(--main-light);
+    border-radius:8px;
+    border-left:4px solid var(--main);
+  }
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(6px) rotate(-0.6deg);}
+    to{opacity:1; transform:translateY(0) rotate(-0.6deg);}
+  }
+  .btn-row{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+    flex-wrap:wrap;
+    justify-content:center;
+    width:100%;
+  }
+  .btn-row button{
+    padding:12px 20px;
+    border-radius:10px;
+    border:none;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    flex:1;
+    min-width:120px;
+  }
+  .btn-show{background:var(--main); color:#fff;}
+  .btn-next{background:#333; color:#fff;}
+  .btn-ok{background:#2a9d4a; color:#fff;}
+  .btn-ng{background:#e4543f; color:#fff;}
+  .btn-restart{background:#999; color:#fff; font-size:13px; padding:8px 14px; flex:0.5;}
+  .finish{
+    text-align:center;
+    padding:30px 10px;
+  }
+  .finish p{font-size:18px; font-weight:700;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📘 用語一問一答（手書き版）</h1>
+  <nav>
+    <button id="tabList" class="active">用語一覧</button>
+    <button id="tabQuiz">一問一答</button>
+  </nav>
+</header>
+
+<main>
+  <!-- 用語一覧パネル -->
+  <section id="panelList" class="panel active">
+    <input type="text" id="searchBox" placeholder="用語・説明で検索（例：パケット）">
+    <div id="listArea"></div>
+  </section>
+
+  <!-- 一問一答パネル -->
+  <section id="panelQuiz" class="panel">
+    <div class="quiz-controls">
+      <select id="catSelect"></select>
+      <label><input type="checkbox" id="shuffleCheck" checked> シャッフル</label>
+      <button id="startBtn">開始</button>
+    </div>
+    <div id="quizArea"></div>
+  </section>
+</main>
+
+<script>
+/* ========= データ ========= */
+const DATA = [
+{cat:"① ネットワーク・通信", groups:[
+  {name:"交換方式", items:[
+    ["回線交換方式","通信のたびに物理的な通信経路を確保してデータを送る方式"],
+    ["回線交換機","回線交換で通信経路を設定する装置"],
+    ["回線交換網","回線交換方式で構成されたネットワーク"],
+    ["蓄積交換方式","データをいったん蓄積して、宛先に応じて転送する方式"],
+    ["パケット交換方式","データをパケット単位に分割して送る方式"],
+    ["パケット","分割されたデータの単位"],
+    ["フレームリレー方式","データをフレーム単位に分割して高速転送する方式"],
+    ["フレーム","データリンク層で扱うデータ単位"],
+    ["セルリレー方式","データを固定長のセル単位で送る方式"],
+    ["ATM","セルリレー方式を利用した高速通信方式"],
+    ["セル","ATMで使われる53バイト固定長のデータ単位"],
+    ["ヘッダ","データの制御情報"],
+    ["データ部","実際のデータを格納する部分"],
+    ["ATMセル","ヘッダ5バイト＋データ48バイト"]
+  ]},
+  {name:"伝送方式", items:[
+    ["直列伝送（シリアル伝送）","1ビットずつ順番に送信する方式"],
+    ["並列伝送（パラレル伝送）","複数ビットを同時に送信する方式"]
+  ]},
+  {name:"通信方式", items:[
+    ["単方向通信","一方向にだけデータを送る方式"],
+    ["半二重通信","双方向通信できるが、同時には送受信できない方式"],
+    ["全二重通信","双方向に同時に送受信できる方式"]
+  ]},
+  {name:"接続方式", items:[
+    ["ポイント・ツー・ポイント方式","2地点を1対1で接続する方式"],
+    ["マルチポイント方式","複数のコンピュータを同一回線に接続する方式"],
+    ["集線方式","複数の回線を1本にまとめて接続する方式"]
+  ]}
+]},
+{cat:"② 変調・デジタル伝送", groups:[
+  {name:null, items:[
+    ["変調","デジタル信号などを通信に適した信号に変換すること"],
+    ["AM（振幅変調）","振幅の変化で情報を表す方式"],
+    ["FM（周波数変調）","周波数の変化で情報を表す方式"],
+    ["PM（位相変調）","位相のずれで情報を表す方式"],
+    ["PCM（パルス符号変調）","アナログ信号をデジタル信号に変換する方式"],
+    ["標本化（サンプリング）","アナログ信号を一定間隔ごとに取り出すこと"],
+    ["量子化","サンプリングした値を整数値などにまとめること"],
+    ["符号化","量子化した値を2進数などで表現すること"]
+  ]}
+]},
+{cat:"③ 同期方式・誤り制御", groups:[
+  {name:null, items:[
+    ["同期","送信側と受信側のタイミングを合わせること"],
+    ["非同期方式","データの前後に同期用のビットを付けて送る方式"],
+    ["同期方式","送受信側でタイミングを合わせて送る方式"],
+    ["ビット同期方式","ビット単位で同期をとる方式"],
+    ["キャラクタ同期方式","文字単位で同期をとる方式"],
+    ["フレーム同期方式","フレーム単位で同期をとる方式"],
+    ["スタートビット","非同期通信でデータの開始を示すビット"],
+    ["ストップビット","非同期通信でデータの終了を示すビット"],
+    ["SYN同期方式","SYN文字を使ってブロックの開始を認識する方式"],
+    ["SYN信号","同期をとるための信号"],
+    ["フラグ同期方式","フラグを使ってフレームの開始・終了を示す方式"],
+    ["フラグ","フレームの境界を示す特殊なビット列"],
+    ["誤り制御","データの誤りを検出・訂正するための制御"],
+    ["パリティチェック","パリティビットを利用して誤りを検出する方式"],
+    ["パリティビット","データのビット数を基準に付加する誤り検出用ビット"],
+    ["CRC（巡回冗長検査）","データを計算して誤りを検出する方式"]
+  ]}
+]},
+{cat:"④ 伝送制御手順", groups:[
+  {name:null, items:[
+    ["伝送制御手順","データ通信を効率よく行うための制御手順"],
+    ["物理的通信路","実際に通信するための物理的な回線"],
+    ["論理的通信路","通信を行うために論理的に確立された経路"]
+  ]},
+  {name:"5フェーズ", items:[
+    ["フェーズ1","通信回線を物理的に接続"],
+    ["フェーズ2","論理的な通信路を確立"],
+    ["フェーズ3","同期をとり、データを伝送"],
+    ["フェーズ4","データ伝送終了を確認し、論理的通信路を閉じる"],
+    ["フェーズ5","物理的に接続した通信回線を切断"]
+  ]},
+  {name:"手順", items:[
+    ["無手順（TTY手順）","最低限の伝送制御だけを行う方式"],
+    ["ベーシック手順","ブロック単位でデータを伝送する基本的な方式"],
+    ["HDLC手順","フレーム単位で高速にデータを伝送する方式"],
+    ["パケット単位","データをパケットごとに扱う単位"],
+    ["フレーム単位","データをフレームごとに扱う単位"]
+  ]}
+]},
+{cat:"⑤ 接続・通信で出る用語", groups:[
+  {name:null, items:[
+    ["通信回線","データを送受信するための経路"],
+    ["通信路","データが通る経路"],
+    ["送信","データを送り出すこと"],
+    ["受信","データを受け取ること"],
+    ["送信側","データを送る側"],
+    ["受信側","データを受け取る側"]
+  ]}
+]},
+{cat:"⑥ ソフトウェアの分類", groups:[
+  {name:null, items:[
+    ["ソフトウェア","コンピュータを動作させるプログラム"],
+    ["ハードウェア","コンピュータを構成する物理的な装置"],
+    ["応用ソフトウェア","利用者の目的に応じた処理を行うソフトウェア"],
+    ["システムソフトウェア","ハードウェアを管理・制御するソフトウェア"],
+    ["基本ソフトウェア","OSなど、コンピュータの基本機能を管理するソフトウェア"],
+    ["ミドルウェア","基本ソフトウェアと応用ソフトウェアの中間で共通機能を提供するソフトウェア"],
+    ["制御プログラム","ハードウェア資源を管理・制御するプログラム"],
+    ["サービスプログラム","利用者の作業を支援するプログラム"],
+    ["OS（オペレーティングシステム）","コンピュータの資源や動作を管理する基本ソフトウェア"]
+  ]}
+]},
+{cat:"⑦ ソフトウェアの種類・ライセンス", groups:[
+  {name:null, items:[
+    ["パッケージソフトウェア","一般に販売・配布される完成したソフトウェア"],
+    ["フリーウェア","無料で利用できるソフトウェア"],
+    ["シェアウェア","試用後などに料金を支払って利用するソフトウェア"],
+    ["OSS（オープンソースソフトウェア）","ソースコードが公開され、条件の範囲内で改変・再配布できるソフトウェア"],
+    ["ソフトウェアライセンス","ソフトウェアを利用する際に守るべき条件を定めたもの"],
+    ["利用許諾契約","ソフトウェアの利用について権利者と利用者が結ぶ契約"]
+  ]}
+]},
+{cat:"⑧ 言語プロセッサ・開発環境", groups:[
+  {name:null, items:[
+    ["言語プロセッサ","プログラム言語をコンピュータが理解できるコードに変換するソフトウェア"],
+    ["原始プログラム（ソースプログラム）","人間がプログラミング言語で記述したプログラム"],
+    ["目的プログラム","翻訳後に作られる機械語などのプログラム"],
+    ["コンパイラ","ソースプログラム全体をまとめて翻訳するソフトウェア"],
+    ["インタプリタ","ソースプログラムを1文ずつ翻訳・実行するソフトウェア"],
+    ["アセンブラ","アセンブリ言語を機械語に変換するソフトウェア"],
+    ["リンカ","複数のプログラムやモジュールを結合するソフトウェア"],
+    ["ローダ","プログラムを主記憶装置に読み込むソフトウェア"],
+    ["テキストエディタ","プログラムなどのテキストを編集するソフトウェア"],
+    ["アーカイバ","複数のファイルをまとめたり圧縮したりするソフトウェア"],
+    ["IDE（統合開発環境）","プログラム開発に必要な機能をまとめた環境"],
+    ["プログラムライブラリ","再利用できるプログラム部品をまとめたもの"],
+    ["オブジェクトプログラム","コンパイルなどによって生成された目的プログラム"],
+    ["ソフトウェア開発環境","プログラムを開発するための環境"]
+  ]}
+]},
+{cat:"⑨ OSの目的・性能", groups:[
+  {name:null, items:[
+    ["OS","コンピュータ全体を管理・制御する基本ソフトウェア"],
+    ["資源の有効活用","CPU・メモリ・入出力装置などを効率よく利用すること"],
+    ["スループット","単位時間あたりに処理できる仕事量"],
+    ["レスポンスタイム","処理要求を出してから最初の応答が返るまでの時間"],
+    ["ターンアラウンドタイム","処理を依頼してから結果が出るまでの時間"],
+    ["処理能力","コンピュータが一定時間内に処理できる量"]
+  ]}
+]},
+{cat:"⑩ RASIS", groups:[
+  {name:null, items:[
+    ["RASIS","コンピュータシステムの信頼性を評価する5つの指標"],
+    ["R（Reliability）信頼性","故障しにくさ"],
+    ["A（Availability）可用性","必要なときに利用できる度合い"],
+    ["S（Serviceability）保守性","故障したときに修復しやすい度合い"],
+    ["I（Integrity）保全性","データが正しく保たれる度合い"],
+    ["S（Security）安全性","データを安全に保護する度合い"],
+    ["MTBF","平均故障間隔"],
+    ["MTTR","平均修復時間"],
+    ["稼働率","MTBF ÷（MTBF＋MTTR）"]
+  ]}
+]},
+{cat:"⑪ OSの管理", groups:[
+  {name:null, items:[
+    ["ジョブ管理","コンピュータに処理させる仕事の単位であるジョブを管理する機能"],
+    ["ジョブ","コンピュータに処理させる仕事の単位"],
+    ["ジョブスケジューラ","ジョブの実行順序などを管理する機能"],
+    ["マスタスケジューラ","ジョブ管理プログラムの開始・終了などを管理するプログラム"],
+    ["スプーリング","CPUと周辺装置の速度差を吸収する仕組み"],
+    ["タスク管理","タスクの実行を管理する機能"],
+    ["タスク","OSから見た処理の単位"],
+    ["マルチタスク","複数のタスクを並行して実行すること"],
+    ["マルチプログラミング","複数のプログラムを主記憶に置き、CPUを切り替えながら実行する方式"]
+  ]}
+]},
+{cat:"⑫ タスクの状態", groups:[
+  {name:null, items:[
+    ["タスクの生成","新しいタスクが作られること"],
+    ["実行可能状態","CPUが割り当てられれば実行できる状態"],
+    ["実行状態","CPUを使用して実行している状態"],
+    ["待ち状態","入出力などの完了を待っている状態"],
+    ["タスクの消滅","タスクの処理が終了すること"],
+    ["タスク待ち行列","実行を待っているタスクの列"],
+    ["ディスパッチ","実行可能状態のタスクにCPUを割り当てること"],
+    ["プリエンプション","実行中のタスクからCPUを取り上げること"],
+    ["優先度","タスクを実行する順番を決める基準"]
+  ]}
+]},
+{cat:"⑬ OSの運用・利用者支援", groups:[
+  {name:null, items:[
+    ["仮想化","物理的な資源を論理的に分割・統合して利用する技術"],
+    ["仮想記憶","主記憶より大きな記憶領域があるように扱う仕組み"],
+    ["ユーザインタフェース","利用者とコンピュータが情報をやり取りする仕組み"],
+    ["操作性","利用者が操作しやすい度合い"]
+  ]}
+]},
+{cat:"⑭ 変調方式で特に覚える", groups:[
+  {name:null, items:[
+    ["AM","振幅を変える"],
+    ["FM","周波数を変える"],
+    ["PM","位相を変える"],
+    ["PCM","アナログ信号をデジタル化"]
+  ]},
+  {name:"PCMの3段階", items:[
+    ["標本化","一定間隔で測る"],
+    ["量子化","数値にまとめる"]
+  ]}
+]}
+];
+
+/* ========= 用語一覧 描画 ========= */
+const listArea = document.getElementById('listArea');
+function renderList(){
+  listArea.innerHTML = '';
+  DATA.forEach((catObj, ci)=>{
+    const det = document.createElement('details');
+    det.className = 'cat';
+    det.open = false;
+    const sum = document.createElement('summary');
+    const count = catObj.groups.reduce((n,g)=>n+g.items.length,0);
+    sum.textContent = catObj.cat + '（' + count + '）';
+    det.appendChild(sum);
+
+    catObj.groups.forEach(g=>{
+      if(g.name){
+        const gn = document.createElement('div');
+        gn.className = 'group-name';
+        gn.textContent = '▸ ' + g.name;
+        det.appendChild(gn);
+      }
+      g.items.forEach(([t,a])=>{
+        const div = document.createElement('div');
+        div.className = 'term-item';
+        div.dataset.term = t.toLowerCase();
+        div.dataset.ans = a.toLowerCase();
+        div.innerHTML = '<div class="t">'+t+'</div><div class="a">'+a+'</div>';
+        det.appendChild(div);
+      });
+    });
+    listArea.appendChild(det);
+  });
+}
+renderList();
+
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('#listArea .cat').forEach(det=>{
+    let any = false;
+    det.querySelectorAll('.term-item').forEach(item=>{
+      const match = !q || item.dataset.term.includes(q) || item.dataset.ans.includes(q);
+      item.classList.toggle('hidden', !match);
+      if(match) any = true;
+    });
+    det.classList.toggle('hidden', !any);
+    if(q) det.open = any;
+  });
+});
+
+/* ========= 一問一答 ========= */
+const catSelect = document.getElementById('catSelect');
+const quizArea = document.getElementById('quizArea');
+let pool = [];
+let qIndex = 0;
+let score = {ok:0, ng:0};
+let canvas, ctx;
+
+function buildCatOptions(){
+  catSelect.innerHTML = '<option value="all">すべて（' + DATA.reduce((n,c)=>n+c.groups.reduce((m,g)=>m+g.items.length,0),0) + '問）</option>';
+  DATA.forEach((c,i)=>{
+    const n = c.groups.reduce((m,g)=>m+g.items.length,0);
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.cat + '（' + n + '問）';
+    catSelect.appendChild(opt);
+  });
+}
+buildCatOptions();
+
+function shuffleArr(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  const val = catSelect.value;
+  let items = [];
+  if(val === 'all'){
+    DATA.forEach(c=> c.groups.forEach(g=> g.items.forEach(([t,a])=> items.push({cat:c.cat, t, a}))));
+  }else{
+    const c = DATA[Number(val)];
+    c.groups.forEach(g=> g.items.forEach(([t,a])=> items.push({cat:c.cat, t, a})));
+  }
+  if(document.getElementById('shuffleCheck').checked) shuffleArr(items);
+  pool = items;
+  qIndex = 0;
+  score = {ok:0, ng:0};
+  renderQuiz();
+});
+
+function initCanvas(){
+  canvas = document.getElementById('drawCanvas');
+  if(!canvas) return;
+  ctx = canvas.getContext('2d');
+  
+  // Canvasをウィンドウサイズに合わせる
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = 250 * window.devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '250px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#000';
+  
+  let isDrawing = false;
+  
+  canvas.addEventListener('mousedown', (e)=>{ isDrawing = true; draw(e); });
+  canvas.addEventListener('mousemove', (e)=>{ if(isDrawing) draw(e); });
+  canvas.addEventListener('mouseup', ()=>{ isDrawing = false; });
+  canvas.addEventListener('mouseout', ()=>{ isDrawing = false; });
+  
+  // タッチ対応
+  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); isDrawing = true; drawTouch(e); });
+  canvas.addEventListener('touchmove', (e)=>{ e.preventDefault(); if(isDrawing) drawTouch(e); });
+  canvas.addEventListener('touchend', ()=>{ isDrawing = false; });
+  
+  function draw(e){
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width) / window.devicePixelRatio;
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height) / window.devicePixelRatio;
+    
+    if(e.type === 'mousedown'){
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+  }
+  
+  function drawTouch(e){
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = (touch.clientX - rect.left) * (canvas.width / rect.width) / window.devicePixelRatio;
+    const y = (touch.clientY - rect.top) * (canvas.height / rect.height) / window.devicePixelRatio;
+    
+    if(e.type === 'touchstart'){
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+  }
+}
+
+function renderQuiz(){
+  if(pool.length === 0){
+    quizArea.innerHTML = '<p style="text-align:center;color:#888;">上のメニューから範囲を選んで「開始」を押してください。</p>';
+    return;
+  }
+  if(qIndex >= pool.length){
+    quizArea.innerHTML =
+      '<div class="finish">'+
+        '<p>🎉 全' + pool.length + '問 終了！</p>'+
+        '<div class="score">正解 <span class="ok">' + score.ok + '</span>　/　不正解 <span class="ng">' + score.ng + '</span></div>'+
+        '<button class="btn-restart" id="restartBtn">もう一度最初から</button>'+
+      '</div>';
+    document.getElementById('restartBtn').addEventListener('click', ()=>{
+      qIndex = 0; score = {ok:0, ng:0};
+      if(document.getElementById('shuffleCheck').checked) shuffleArr(pool);
+      renderQuiz();
+    });
+    return;
+  }
+
+  const q = pool[qIndex];
+  quizArea.innerHTML =
+    '<div class="progress">' + (qIndex+1) + ' / ' + pool.length + '問</div>' +
+    '<div class="score">正解 <span class="ok">'+score.ok+'</span>　不正解 <span class="ng">'+score.ng+'</span></div>' +
+    '<div class="card">' +
+      '<div class="cat-tag">' + q.cat + '</div>' +
+      '<div class="question">' + q.t + '</div>' +
+      '<div class="canvas-wrapper">' +
+        '<canvas id="drawCanvas"></canvas>' +
+        '<div class="canvas-controls">' +
+          '<button id="clearBtn">消す</button>' +
+          '<label style="display:flex; align-items:center; gap:6px; flex:1;">' +
+            '太さ <input type="range" id="sizeSlider" min="1" max="10" value="2" style="flex:1;">' +
+          '</label>' +
+          '<input type="color" id="colorPicker" value="#000000">' +
+        '</div>' +
+      '</div>' +
+      '<div class="answer-box" id="answerBox">' +
+        '<div class="answer-text">' + q.a + '</div>' +
+      '</div>' +
+      '<div class="btn-row" id="btnRow">' +
+        '<button class="btn-show" id="showBtn">答えを見る</button>' +
+      '</div>' +
+    '</div>';
+
+  initCanvas();
+  
+  document.getElementById('clearBtn').addEventListener('click', ()=>{
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+  
+  document.getElementById('sizeSlider').addEventListener('change', (e)=>{
+    ctx.lineWidth = e.target.value;
+  });
+  
+  document.getElementById('colorPicker').addEventListener('change', (e)=>{
+    ctx.strokeStyle = e.target.value;
+  });
+
+  document.getElementById('showBtn').addEventListener('click', ()=>{
+    document.getElementById('answerBox').classList.add('show');
+    document.getElementById('btnRow').innerHTML =
+      '<button class="btn-ok" id="okBtn">〇 わかった</button>' +
+      '<button class="btn-ng" id="ngBtn">✕ わからなかった</button>';
+    document.getElementById('okBtn').addEventListener('click', ()=>{ score.ok++; next(); });
+    document.getElementById('ngBtn').addEventListener('click', ()=>{ score.ng++; next(); });
+  });
+}
+
+function next(){
+  qIndex++;
+  renderQuiz();
+}
+
+/* ========= タブ切り替え ========= */
+const tabList = document.getElementById('tabList');
+const tabQuiz = document.getElementById('tabQuiz');
+const panelList = document.getElementById('panelList');
+const panelQuiz = document.getElementById('panelQuiz');
+
+tabList.addEventListener('click', ()=>{
+  tabList.classList.add('active'); tabQuiz.classList.remove('active');
+  panelList.classList.add('active'); panelQuiz.classList.remove('active');
+});
+tabQuiz.addEventListener('click', ()=>{
+  tabQuiz.classList.add('active'); tabList.classList.remove('active');
+  panelQuiz.classList.add('active'); panelList.classList.remove('active');
+  if(pool.length===0) renderQuiz();
+});
+</script>
+</body>
+</html>
